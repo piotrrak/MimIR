@@ -386,6 +386,11 @@ std::string Emitter::emit_head(BB& bb, Lam* lam, bool as_binding) {
 std::string Emitter::emit_cons_type(BB& bb, View<const Def*> ops) {
     std::ostringstream os;
 
+    if (ops.size() == 0) {
+        print(os, "(cons nil)");
+        return os.str();
+    }
+
     size_t op_idx = 0;
     for (auto op : ops) {
         print(os, "(cons {} ", emit_type(bb, op));
@@ -514,6 +519,13 @@ std::string Emitter::emit_type(BB& bb, const Def* type) {
 // i.e. for Tuple: (tuple (cons a (cons b nil)))
 std::string Emitter::emit_cons(std::vector<std::string> op_vals) {
     std::ostringstream os;
+
+    if (op_vals.size() == 0) {
+        ++tab;
+        tab.lnprint(os, "(cons nil)");
+        --tab;
+        return os.str();
+    }
 
     size_t op_idx = 0;
     for (auto op_val : op_vals) {
