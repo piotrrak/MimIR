@@ -95,7 +95,7 @@ void SlottedRewrite::init(rust::Vec<RecExprFFI> rewrites, InitStage stage) {
 // (lam <extern> <name> <domain-type> <codomain-type> $var-name (scope <filter> <body>))
 const Def* SlottedRewrite::init_lam(uint32_t id, NodeFFI node) { return nullptr; }
 
-// TODO: (con <extern> <name> <domain-type> $var-name (scope <filter> <body>))
+// (con <extern> <name> <domain-type> $var-name (scope <filter> <body>))
 const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     auto domain_id      = node.children[2];
@@ -110,8 +110,6 @@ const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node) {
     auto var      = new_con->var();
     var->set(var_name);
     register_var(var_name, var);
-    // fix
-    register_projs(domain_id);
 
     if (DEBUG) std::cout << new_con << "\n";
     return new_con;
@@ -241,9 +239,9 @@ const Def* SlottedRewrite::convert_app(uint32_t id, NodeFFI node) {
     return new_app;
 }
 
-// TODO: (var $name)
+// (var $name)
 const Def* SlottedRewrite::convert_var(uint32_t id, NodeFFI node) {
-    auto var = get_def(node.children[0]);
+    auto var = get_def(id);
     return var;
 }
 
@@ -268,14 +266,14 @@ const Def* SlottedRewrite::convert_pack(uint32_t id, NodeFFI node) {
 
 // (tuple <elem-cons>)
 const Def* SlottedRewrite::convert_tuple(uint32_t id, NodeFFI node) {
-    auto elems = get_cons_flat(node.children[1]);
+    auto elem_ids = get_cons_flat(node.children[0]);
 
-    DefVec ops;
-    for (auto elem : elems) {
-        auto op = get_def(elem);
-        ops.push_back(op);
+    DefVec elems;
+    for (auto elem_id : elem_ids) {
+        auto elem = get_def(elem_id);
+        elems.push_back(elem);
     }
-    auto new_tuple = new_world().tuple(ops);
+    auto new_tuple = new_world().tuple(elems);
     return new_tuple;
 }
 
@@ -304,70 +302,73 @@ const Def* SlottedRewrite::convert_inj(uint32_t id, NodeFFI node) {
     return new_inj;
 }
 
-// TODO: (merge <type> <value-cons>)
+// (merge <type> <value-cons>)
 const Def* SlottedRewrite::convert_merge(uint32_t id, NodeFFI node) {
     auto type = get_def(node.children[0]);
+
+    auto value_ids = get_cons_flat(node.children[1]);
     DefVec values;
-    for (auto child : node.children | std::views::drop(1)) {
-        auto value = get_def(child);
+    for (auto value_id : value_ids) {
+        auto value = get_def(value_id);
         values.push_back(value);
     }
     auto new_merge = new_world().merge(type, values);
     return new_merge;
 }
 
-// TODO: (match <op-cons>)
+// (match <op-cons>)
 const Def* SlottedRewrite::convert_match(uint32_t id, NodeFFI node) {
-    auto scrutinee = get_def(node.children[0]);
-    DefVec ops     = {scrutinee};
-    for (auto child : node.children | std::views::drop(1)) {
-        auto arm = get_def(child);
-        ops.push_back(arm);
+    auto op_ids = get_cons_flat(node.children[0]);
+
+    DefVec ops;
+    for (auto op_id : op_ids) {
+        auto op = get_def(op_id);
+        ops.push_back(op);
     }
     auto new_match = new_world().match(ops);
     return new_match;
 }
 
-// TODO: (proxy <type> <pass> <tag> <op-cons>)
+// (proxy <type> <pass> <tag> <op-cons>)
 const Def* SlottedRewrite::convert_proxy(uint32_t id, NodeFFI node) {
     auto type = get_def(node.children[0]);
     auto pass = get_num(node.children[1]);
     auto tag  = get_num(node.children[2]);
+
+    auto op_ids = get_cons_flat(node.children[3]);
     DefVec ops;
-    for (auto child : node.children | std::views::drop(3)) {
-        auto op = get_def(child);
+    for (auto op_id : op_ids) {
+        auto op = get_def(op_id);
         ops.push_back(op);
     }
     auto new_proxy = new_world().proxy(type, ops, pass, tag);
     return new_proxy;
 }
 
-// TODO: (join <type-cons>)
+// (join <type-cons>)
 const Def* SlottedRewrite::convert_join(uint32_t id, NodeFFI node) {
+    auto type_ids = get_cons_flat(node.children[0]);
+
     DefVec types;
-    for (auto child : node.children) {
-        auto type = get_def(child);
-        if (type) types.push_back(type);
+    for (auto type_id : type_ids) {
+        auto type = get_def(type_id);
+        types.push_back(type);
     }
-    if (types.size() > 0) {
-        auto new_join = new_world().join(types);
-        return new_join;
-    }
-    return nullptr;
+    auto new_join = new_world().join(types);
+    return new_join;
 }
 
-// TODO: (meet <type-cons>)
+// (meet <type-cons>)
 const Def* SlottedRewrite::convert_meet(uint32_t id, NodeFFI node) {
+    auto type_ids = get_cons_flat(node.children[0]);
+
     DefVec types;
-    for (auto child : node.children) {
-        auto type = get_def(child);
-        if (type) types.push_back(type);
+    for (auto type_id : type_ids) {
+        auto type = get_def(type_id);
+        types.push_back(type);
     }
-    if (types.size() > 0) {
-        auto new_meet = new_world().meet(types);
-        return new_meet;
-    }
-    return nullptr;
+    auto new_meet = new_world().meet(types);
+    return new_meet;
 }
 
 // (bot <type>)
@@ -392,11 +393,13 @@ const Def* SlottedRewrite::convert_arr(uint32_t id, NodeFFI node) {
     return new_arr;
 }
 
-// TODO: (sigma <type-cons>)
+// (sigma <type-cons>)
 const Def* SlottedRewrite::convert_sigma(uint32_t id, NodeFFI node) {
+    auto type_ids = get_cons_flat(node.children[0]);
+
     DefVec types;
-    for (auto child : node.children) {
-        auto type = get_def(child);
+    for (auto type_id : type_ids) {
+        auto type = get_def(type_id);
         types.push_back(type);
     }
 

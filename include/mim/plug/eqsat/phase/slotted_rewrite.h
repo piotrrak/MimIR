@@ -106,6 +106,8 @@ private:
         auto def = added_[id];
         if (def == nullptr) {
             auto sym = get_symbol(id);
+            sym.empty() ? sym = get_slot(id) : sym;
+
             if (aliases_.contains(sym))
                 def = aliases_[sym];
             else if (axms_.contains(sym))
@@ -121,26 +123,6 @@ private:
     void register_var(std::string name, const Def* converted) { vars_[name] = converted; }
     void register_axm(std::string name, const Axm* converted) { axms_[name] = converted; }
     void register_lam(std::string name, const Lam* converted) { lams_[name] = converted; }
-    void register_projs(uint32_t id) {
-        auto node = get_node_unsafe(id);
-        if (node.kind == MimKind::Var) {
-            auto var      = get_def(node.children[0]);
-            auto var_type = get_node_unsafe(node.children.back());
-            if (var && (var_type.kind == MimKind::Sigma || var_type.kind == MimKind::Arr)) {
-                size_t proj_idx = 0;
-                for (size_t i = 1; i < node.children.size() - 1; i++) {
-                    auto proj_node       = get_node(MimKind::Var, node.children[i]);
-                    auto proj_name       = get_symbol(proj_node.children[0]);
-                    auto proj_name_nouid = remove_uid(proj_name);
-                    auto proj            = var->proj(proj_idx++);
-                    proj->set(proj_name_nouid);
-                    register_var(proj_name, proj);
-                }
-            }
-        }
-        for (uint32_t child : node.children)
-            register_projs(child);
-    }
 
     const Def* get_var(std::string name) { return vars_[name]; }
     const Def* get_axm(std::string name) { return axms_[name]; }
