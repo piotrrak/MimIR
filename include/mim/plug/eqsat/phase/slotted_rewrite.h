@@ -60,41 +60,41 @@ private:
         Lambdas,
         Bindings,
     };
-    void init(rust::Vec<RewriteResult> rewrites, InitStage stage);
-    const Def* init_lam(uint32_t id, MimNode node);
-    const Def* init_con(uint32_t id, MimNode node);
-    const Def* init_let(uint32_t id, MimNode node);
-    const Def* init_axm(uint32_t id, MimNode node);
+    void init(rust::Vec<RecExprFFI> rewrites, InitStage stage);
+    const Def* init_lam(uint32_t id, NodeFFI node);
+    const Def* init_con(uint32_t id, NodeFFI node);
+    const Def* init_let(uint32_t id, NodeFFI node);
+    const Def* init_axm(uint32_t id, NodeFFI node);
 
-    void convert(rust::Vec<RewriteResult> rewrites);
+    void convert(rust::Vec<RecExprFFI> rewrites);
     const Def* convert(uint32_t id, bool recurse = false);
-    const Def* convert_let(uint32_t id, MimNode node);
-    const Def* convert_lam(uint32_t id, MimNode node);
-    const Def* convert_con(uint32_t id, MimNode node);
-    const Def* convert_app(uint32_t id, MimNode node);
-    const Def* convert_var(uint32_t id, MimNode node);
-    const Def* convert_lit(uint32_t id, MimNode node);
-    const Def* convert_pack(uint32_t id, MimNode node);
-    const Def* convert_tuple(uint32_t id, MimNode node);
-    const Def* convert_extract(uint32_t id, MimNode node);
-    const Def* convert_insert(uint32_t id, MimNode node);
-    const Def* convert_inj(uint32_t id, MimNode node);
-    const Def* convert_merge(uint32_t id, MimNode node);
-    const Def* convert_match(uint32_t id, MimNode node);
-    const Def* convert_proxy(uint32_t id, MimNode node);
-    const Def* convert_join(uint32_t id, MimNode node);
-    const Def* convert_meet(uint32_t id, MimNode node);
-    const Def* convert_bot(uint32_t id, MimNode node);
-    const Def* convert_top(uint32_t id, MimNode node);
-    const Def* convert_arr(uint32_t id, MimNode node);
-    const Def* convert_sigma(uint32_t id, MimNode node);
-    const Def* convert_cn(uint32_t id, MimNode node);
-    const Def* convert_pi(uint32_t id, MimNode node);
-    const Def* convert_idx(uint32_t id, MimNode node);
-    const Def* convert_hole(uint32_t id, MimNode node);
-    const Def* convert_type(uint32_t id, MimNode node);
-    const Def* convert_num(uint32_t id, MimNode node);
-    const Def* convert_symbol(uint32_t id, MimNode node);
+    const Def* convert_let(uint32_t id, NodeFFI node);
+    const Def* convert_lam(uint32_t id, NodeFFI node);
+    const Def* convert_con(uint32_t id, NodeFFI node);
+    const Def* convert_app(uint32_t id, NodeFFI node);
+    const Def* convert_var(uint32_t id, NodeFFI node);
+    const Def* convert_lit(uint32_t id, NodeFFI node);
+    const Def* convert_pack(uint32_t id, NodeFFI node);
+    const Def* convert_tuple(uint32_t id, NodeFFI node);
+    const Def* convert_extract(uint32_t id, NodeFFI node);
+    const Def* convert_insert(uint32_t id, NodeFFI node);
+    const Def* convert_inj(uint32_t id, NodeFFI node);
+    const Def* convert_merge(uint32_t id, NodeFFI node);
+    const Def* convert_match(uint32_t id, NodeFFI node);
+    const Def* convert_proxy(uint32_t id, NodeFFI node);
+    const Def* convert_join(uint32_t id, NodeFFI node);
+    const Def* convert_meet(uint32_t id, NodeFFI node);
+    const Def* convert_bot(uint32_t id, NodeFFI node);
+    const Def* convert_top(uint32_t id, NodeFFI node);
+    const Def* convert_arr(uint32_t id, NodeFFI node);
+    const Def* convert_sigma(uint32_t id, NodeFFI node);
+    const Def* convert_cn(uint32_t id, NodeFFI node);
+    const Def* convert_pi(uint32_t id, NodeFFI node);
+    const Def* convert_idx(uint32_t id, NodeFFI node);
+    const Def* convert_hole(uint32_t id, NodeFFI node);
+    const Def* convert_type(uint32_t id, NodeFFI node);
+    const Def* convert_num(uint32_t id, NodeFFI node);
+    const Def* convert_symbol(uint32_t id, NodeFFI node);
 
     // A node that is associated with a Def can be:
     // 1) A node representing an arbitrary term
@@ -146,11 +146,11 @@ private:
     const Def* get_axm(std::string name) { return axms_[name]; }
     const Lam* get_lam(std::string name) { return lams_[name]; }
 
-    MimNode get_node(MimKind expected, uint32_t id) {
+    NodeFFI get_node(MimKind expected, uint32_t id) {
         assert(res_[id].kind == expected && "get_node: mismatch between expected and actual node kind");
         return res_[id];
     }
-    MimNode get_node_unsafe(uint32_t id) { return res_[id]; }
+    NodeFFI get_node_unsafe(uint32_t id) { return res_[id]; }
     std::string get_symbol(uint32_t id) { return res_[id].symbol.c_str(); }
     uint64_t get_num(uint32_t id) { return res_[id].num; }
     std::string get_slot(uint32_t id) { return res_[id].slot.c_str(); }
@@ -173,7 +173,7 @@ private:
         return name;
     }
 
-    rust::Vec<MimNode> res_;
+    rust::Vec<NodeFFI> res_;
     std::unordered_map<uint32_t, const Def*> added_;
     std::unordered_map<std::string, const Def*> vars_;
     std::unordered_map<std::string, const Lam*> lams_;
