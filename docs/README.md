@@ -1,15 +1,15 @@
 # MimIR
 
-[![Forks](https://img.shields.io/github/forks/AnyDSL/MimIR)](https://github.com/AnyDSL/MimIR/fork)
-[![Stars](https://img.shields.io/github/stars/AnyDSL/MimIR)](https://github.com/AnyDSL/MimIR/stargazers)
+[![Forks](https://img.shields.io/github/forks/mimir/mimir)](https://github.com/mimir/mimir/fork)
+[![Stars](https://img.shields.io/github/stars/mimir/mimir)](https://github.com/mimir/mimir/stargazers)
 
-[![Documentation](https://img.shields.io/badge/docs-master-green?style=flat-square&logo=gitbook&logoColor=white)](https://anydsl.github.io/MimIR)
+[![Documentation](https://img.shields.io/badge/docs-master-green?style=flat-square&logo=gitbook&logoColor=white)](https://mimir.github.io)
 [![Discord](https://img.shields.io/discord/960975142459179068?style=flat-square&color=green&logo=discord&logoColor=white)](https://discord.gg/FPp7hdj3fQ)
-[![License](https://img.shields.io/github/license/anydsl/MimIR?style=flat-square&color=yellowgreen&logo=opensourceinitiative&logoColor=white)](https://github.com/AnyDSL/MimIR/blob/master/LICENSE.TXT)
-[![Linux](https://img.shields.io/github/actions/workflow/status/anydsl/MimIR/linux.yml?style=flat-square&logo=linux&label=linux&logoColor=white&branch=master)](https://github.com/AnyDSL/MimIR/actions/workflows/linux.yml)
-[![Windows](https://img.shields.io/github/actions/workflow/status/anydsl/MimIR/windows.yml?label=⊞%20windows&branch=master)](https://github.com/AnyDSL/MimIR/actions/workflows/windows.yml)
-[![macOS](https://img.shields.io/github/actions/workflow/status/anydsl/MimIR/macos.yml?style=flat-square&logo=apple&label=macos&branch=master)](https://github.com/AnyDSL/MimIR/actions/workflows/macos.yml)
-[![Doxygen](https://img.shields.io/github/actions/workflow/status/anydsl/MimIR/doxygen.yml?style=flat-square&logo=gitbook&logoColor=white&label=doxygen&branch=master)](https://github.com/AnyDSL/MimIR/actions/workflows/doxygen.yml)
+[![License](https://img.shields.io/github/license/mimir/mimir?style=flat-square&color=yellowgreen&logo=opensourceinitiative&logoColor=white)](https://github.com/mimir/mimir/blob/master/LICENSE.TXT)
+[![Linux](https://img.shields.io/github/actions/workflow/status/mimir/mimir/linux.yml?style=flat-square&logo=linux&label=linux&logoColor=white&branch=master)](https://github.com/mimir/mimir/actions/workflows/linux.yml)
+[![Windows](https://img.shields.io/github/actions/workflow/status/mimir/mimir/windows.yml?label=⊞%20windows&branch=master)](https://github.com/mimir/mimir/actions/workflows/windows.yml)
+[![macOS](https://img.shields.io/github/actions/workflow/status/mimir/mimir/macos.yml?style=flat-square&logo=apple&label=macos&branch=master)](https://github.com/mimir/mimir/actions/workflows/macos.yml)
+[![Doxygen](https://img.shields.io/github/actions/workflow/status/mimir/mimir/doxygen.yml?style=flat-square&logo=gitbook&logoColor=white&label=doxygen&branch=master)](https://github.com/mimir/mimir/actions/workflows/doxygen.yml)
 
 [TOC]
 
@@ -41,8 +41,8 @@ MimIR is well suited for DSL compilers, tensor compilers, automatic differentiat
 ## 🚀 Quick Start
 
 ```sh
-git clone --recursive git@github.com:AnyDSL/MimIR.git
-cd MimIR
+git clone --recursive git@github.com:mimir/mimir.git
+cd mimir
 cmake -S . -B build -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON
 cmake --build build -j$(nproc)
 ```
@@ -117,19 +117,24 @@ Today, **you** have Mímir's head at your fingertips.
 
 Throughout the codebase, we consistently use `mim` / `MIM` for namespaces, macros, CMake variables, and related identifiers.
 
+### Acknowledgments
+
+We gratefully acknowledge [Alex Wendland](https://github.com/AlexWendland) and the other maintainers of the former `MimIR` GitHub organization for kindly making the organization name available for this project.
+The previous organization has been renamed to [`mimir-deprecated`](https://github.com/mimir-deprecated).
+
 ## 💬 Community
 
 - 💬 **Discord** → [Join the chat](https://discord.gg/FPp7hdj3fQ)
-- 📚 **Documentation** → <https://anydsl.github.io/MimIR>
-- 💻 **Examples** → [`examples/`](https://github.com/AnyDSL/MimIR/tree/master/examples) and [`lit/`](https://github.com/AnyDSL/MimIR/tree/master/lit)
+- 📚 **Documentation** → <https://mimir.github.io>
+- 💻 **Examples** → [`examples/`](https://github.com/mimir/mimir/tree/master/examples) and [`lit/`](https://github.com/mimir/mimir/tree/master/lit)
 
 **Ready to build the next generation of DSL compilers?**
 
-[⭐ Star MimIR on GitHub](https://github.com/AnyDSL/MimIR), join Discord, and let's make high-performance DSLs easy.
+[⭐ Star MimIR on GitHub](https://github.com/mimir/mimir), join Discord, and let's make high-performance DSLs easy.
 
 ## ⚖️ License
 
-MimIR is licensed under the [MIT License](https://github.com/AnyDSL/MimIR/blob/master/LICENSE.TXT).
+MimIR is licensed under the [MIT License](https://github.com/mimir/mimir/blob/master/LICENSE.TXT).
 
 ## 📖 Publications
 
