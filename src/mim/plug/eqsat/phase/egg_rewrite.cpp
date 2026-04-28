@@ -98,6 +98,8 @@ const Def* EggRewrite::init_lam(uint32_t id, NodeFFI node) { return nullptr; }
 // (con <extern> <name> <domain> [<filter> <body>])
 const Def* EggRewrite::init_con(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
+
+    // TODO: Polymorphic domain types
     auto domain_id      = node.children[2];
     auto domain         = get_node(MimKind::Var, domain_id);
     auto domain_type    = convert(domain.children.back(), true);
@@ -222,9 +224,6 @@ const Def* EggRewrite::convert_lam(uint32_t id, NodeFFI node) { return nullptr; 
 const Def* EggRewrite::convert_con(uint32_t id, NodeFFI node) {
     auto con = get_def(node.children[1])->as_mut<Lam>();
 
-    auto is_extern = get_symbol(node.children[0]);
-    if (is_extern == "extern") con->externalize();
-
     if (node.children.size() == 5) {
         auto filter = get_def(node.children[3]);
         auto body   = get_def(node.children[4]);
@@ -232,6 +231,9 @@ const Def* EggRewrite::convert_con(uint32_t id, NodeFFI node) {
         con->set_body(body);
     } else
         con->set_filter(false);
+
+    auto is_extern = get_symbol(node.children[0]);
+    if (is_extern == "extern") con->externalize();
 
     return con;
 }

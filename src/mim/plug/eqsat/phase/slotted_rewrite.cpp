@@ -128,7 +128,7 @@ const Def* SlottedRewrite::init_let(uint32_t id, NodeFFI node) {
     auto let_def_node = get_node_unsafe(name_scope.children[0]);
     if (let_def_node.kind == MimKind::Con || let_def_node.kind == MimKind::Lam) {
         auto lam_def = get_def(let_def_node.children[1]);
-        register_var(name, lam_def);
+        register_lam(name, lam_def->as<Lam>());
         if (DEBUG) std::cout << lam_def << "\n";
         return nullptr;
     }
@@ -228,9 +228,6 @@ const Def* SlottedRewrite::convert_lam(uint32_t id, NodeFFI node) { return nullp
 const Def* SlottedRewrite::convert_con(uint32_t id, NodeFFI node) {
     auto con = get_def(node.children[1])->as_mut<Lam>();
 
-    auto is_extern = get_symbol(node.children[0]);
-    if (is_extern == "extern") con->externalize();
-
     auto var_scope = get_node(MimKind::Scope, node.children[3]);
     auto filter    = get_def(var_scope.children[0]);
     auto body      = get_def(var_scope.children[1]);
@@ -243,6 +240,19 @@ const Def* SlottedRewrite::convert_con(uint32_t id, NodeFFI node) {
         // Declaration
         con->set_filter(false);
     }
+
+    auto is_extern = get_symbol(node.children[0]);
+    if (is_extern == "extern") con->externalize();
+
+    // TODO: Somehow main in rebuild_import.mim ends up with a free var
+    // $f252 at the end which makes it so that it isn't closed so externalize fails.
+    // The body that we set for main has free vars $f254 and $f252
+    // where $f254 is the var that gets bound by main so it ends up
+    // with the remaining free var of body $f252. (It should only have free var $254)
+    // $f252 is the var that gets introduced by atoi_cont_a and
+    // is used in multiple places throughout for example the body
+    // of atoi_cont_a is an application of atoi to a tuple containing
+    // atoi_cont_b whose body uses an extract from $f252 in an application.
 
     return con;
 }
