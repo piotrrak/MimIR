@@ -124,10 +124,12 @@ const Def* SlottedRewrite::init_let(uint32_t id, NodeFFI node) {
     auto name_scope = get_node(MimKind::Scope, node.children[0]);
 
     // If the let-binding is for a lambda, this lambda will already have been
-    // created, set and registered via init_lam/con and thus we can skip it.
+    // created via init_lam/con.
     auto let_def_node = get_node_unsafe(name_scope.children[0]);
     if (let_def_node.kind == MimKind::Con || let_def_node.kind == MimKind::Lam) {
-        if (DEBUG) std::cout << nullptr << "\n";
+        auto lam_def = get_def(let_def_node.children[1]);
+        register_var(name, lam_def);
+        if (DEBUG) std::cout << lam_def << "\n";
         return nullptr;
     }
 
