@@ -25,7 +25,6 @@ void SlottedRewrite::start() {
     if (DEBUG) std::cout << pretty_ffi(rewrites, 80).c_str() << "\n";
 
     // TODO:
-    // - Rebuilding with root nodes
     // - Scoped bindings
     // - Polymorphic lambdas
 
@@ -77,7 +76,7 @@ std::pair<rust::Vec<RuleSet>, CostFn> SlottedRewrite::import_config() {
 
 // Initially creates Defs in the new world according to the specfied 'InitStage'
 // This is done in a particular order to ensure that dependencies are upheld.
-// Defs are initialized in this order: (Declarations->Lambdas->Let-bindings)
+// Defs are initialized in this order: (Declarations->Let-bindings|Root-bindings)
 // The bodies of lambdas can only be created and then set inside of convert(...)
 // after every Def from the init stage has been created, because they
 // can depend on any declaration, lambda, or let-binding.
@@ -90,13 +89,28 @@ void SlottedRewrite::init(rust::Vec<RecExprFFI> rewrites, InitStage stage) {
             const Def* res = nullptr;
             switch (node.kind) {
                 case MimKind::Axm: res = stage == InitStage::Declarations ? init_axm(id, node) : nullptr; break;
-                case MimKind::Let: res = stage == InitStage::Bindings ? init_let(id, node) : nullptr; break;
                 case MimKind::Root: res = stage == InitStage::Bindings ? init_root(id, node) : nullptr; break;
+                case MimKind::Let: res = stage == InitStage::Bindings ? init_let(id, node) : nullptr; break;
                 default: break;
             }
             added_[id] = res;
         }
     }
+}
+
+// (axm <name> <type>)
+const Def* SlottedRewrite::init_axm(uint32_t id, NodeFFI node) {
+    if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
+    auto name = get_symbol(node.children[0]);
+    if (DEBUG) std::cout << "\n";
+    auto type = convert(node.children[1], true);
+
+    auto new_axm = new_world().axm(type);
+    new_axm->set(name);
+    register_axm(name, new_axm);
+
+    if (DEBUG) std::cout << new_axm << "\n";
+    return new_axm;
 }
 
 // (root <extern> <name> <definition>)
@@ -153,21 +167,6 @@ const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node) {
     register_var(var_name, var);
 
     return new_con;
-}
-
-// (axm <name> <type>)
-const Def* SlottedRewrite::init_axm(uint32_t id, NodeFFI node) {
-    if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
-    auto name = get_symbol(node.children[0]);
-    if (DEBUG) std::cout << "\n";
-    auto type = convert(node.children[1], true);
-
-    auto new_axm = new_world().axm(type);
-    new_axm->set(name);
-    register_axm(name, new_axm);
-
-    if (DEBUG) std::cout << new_axm << "\n";
-    return new_axm;
 }
 
 // Converts remaining nodes to Def's in the new world and sets the bodies of the previously created lambdas.
@@ -280,7 +279,7 @@ const Def* SlottedRewrite::convert_let(uint32_t id, NodeFFI node) {
 
 // (con <domain-type> $var-name (scope <filter> <body>))
 const Def* SlottedRewrite::convert_con(uint32_t id, NodeFFI node) {
-    // Real conversion happens in convert_let because we need a name to get to the Def
+    // Real conversion happens in convert_root and convert_let because we need a name to get to the Def
     auto con = get_def(id);
     return con;
 }
