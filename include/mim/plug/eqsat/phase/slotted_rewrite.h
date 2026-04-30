@@ -165,24 +165,45 @@ private:
         return flattened;
     }
 
-    // Tracks the current location in the scope tree.
+    // Loc tracks the current location in the scope tree.
     // This is done by maintaining a depth and an offset while
     // traversing the RecExprFFI that indicate the exact scope we
     // are currently in. To visualize this:
+    //
     //                s1
     //              /    \
     //             s2    s3
     //            /     /  \
     //           s4    s5  s6
+    //
     // The location of scope s5 would be at (2, 1) because it is at
-    // at a tree depth of 2 and at an offset of 1 at that depth.
+    // at a tree-depth of 2 and at an offset of 1 at that depth.
+    //
+    // The reason we do this is because we convert the RecExprFFI's
+    // into the new_world() in multiple traverses. First, we perform
+    // a top-down traverse to create all bindings in their proper scopes
+    // and then we perform a bottom-up traverse to create all other Defs.
+    //
+    // To be able to access the variables we bound in the first top-down
+    // traverse, in the second bottom-up traverse, we need only to provide
+    // our current location and the name of the variable whose definition
+    // we need and we can simply look it up in the scopes_ map.
     struct Loc {
         size_t depth;
+
+        // TODO: I think we should use some kind of a frequency map or histogram
+        // to track how often we have visited each depth and be able to know our
+        // our current offset at each depth.
         size_t offset;
 
         bool operator==(const Loc& other) const noexcept { return depth == other.depth && offset == other.offset; }
     };
     Loc curr_loc_;
+
+    // Tells us exactly how often we have visited each depth
+    // so we can keep track of the current offset at each depth.
+    // maps: Depth -> #Visits
+    std::unordered_map<size_t, size_t> depth_visits;
 
     struct Scope {
         Scope* parent;
