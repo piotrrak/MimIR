@@ -6,6 +6,8 @@
 #include "mim/def.h"
 #include "mim/driver.h"
 
+#include "mim/plug/eqsat/autogen.h"
+
 const bool DEBUG = true;
 
 namespace mim::plug::eqsat {
@@ -53,15 +55,19 @@ std::pair<rust::Vec<RuleSet>, CostFn> SlottedRewrite::import_config() {
         if (auto body_app = body->isa<App>()) {
             if (auto ruleset_config = Axm::isa<eqsat::rulesets>(body_app->arg())) {
                 for (auto ruleset : ruleset_config->args())
-                    if (Axm::isa<eqsat::core>(ruleset))
-                        rulesets.push_back(RuleSet::Core);
-                    else if (Axm::isa<eqsat::math>(ruleset))
-                        rulesets.push_back(RuleSet::Math);
+                    if (Axm::isa<eqsat::standard>(ruleset))
+                        // TODO: Uncomment
+                        // rulesets.push_back(RuleSet::Standard);
+                        print(std::cout, "todo");
+                    else
+                        assert(false && "Provided ruleset does not exist for slotted");
 
             } else if (Axm::isa<eqsat::AstSize>(body_app->arg())) {
                 cost_fn = CostFn::AstSize;
-            } else if (Axm::isa<eqsat::AstDepth>(body_app->arg())) {
-                cost_fn = CostFn::AstDepth;
+            } else if (Axm::isa<eqsat::slotted>(body_app->arg()) || Axm::isa<eqsat::egg>(body_app->arg())) {
+                continue;
+            } else {
+                assert(false && "Invalid config value provided for slotted");
             }
         }
     }

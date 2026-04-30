@@ -297,23 +297,23 @@ void Emitter::emit_lam(Lam* lam, MutSet& done) {
     for (auto& term : bb.tail())
         print(func_impls_, "{}", indent(tab.indent(), term.str()));
 
-    // Closes the scope-node containing the lambdas' filter and body which gets emitted for slotted in emit_head
-    if (slotted()) {
-        --tab;
-        print(func_impls_, ")");
-    }
-
     std::string closing_parens(unclosed_parens, ')');
     print(func_impls_, "{}", closing_parens);
     --tab;
 
-    // Closes the let node which is emitted for lambdas that are let-bound via emit_head(... as_binding=true)
-    if (as_binding) {
+    if (slotted()) {
+        --tab;
+        --tab;
+        if (as_binding) {
+            --tab;
+            print(func_impls_, "))");
+        } else {
+            print(func_impls_, ")))\n\n");
+        }
+
+    } else if (as_binding) {
         --tab;
         print(func_impls_, ")");
-        // Since let-nodes in slotted are defined as (let <name> (scope <def> <expr>))
-        // we have to unindent the additional 'scope' node printed in emit_head.
-        if (slotted()) --tab;
     } else {
         print(func_impls_, ")\n\n");
     }
@@ -379,35 +379,37 @@ std::string Emitter::emit_head(BB& bb, Lam* lam, bool as_binding) {
     const std::string lam_kind = lam->isa_cn(lam) ? "con" : "lam";
     const std::string ext      = lam->is_external() ? "extern" : "intern";
 
-    if (as_binding) {
+    if (slotted()) {
+        if (as_binding) {
+            tab.lnprint(os, "(let");
+            ++tab;
+            tab.lnprint(os, "{}", id(lam));
+            tab.lnprint(os, "(scope");
+            ++tab;
+            tab.lnprint(os, "({}", lam_kind);
+        } else {
+            // We toggle slot-printing to emit the lam id without a slot prefix '$'
+            toggle_slots();
+            print(os, "(root {} {}", ext, id(lam));
+            ++tab;
+            tab.lnprint(os, "({}", lam_kind);
+            toggle_slots();
+        }
+
+    } else if (as_binding) {
         tab.lnprint(os, "(let");
         ++tab;
         tab.lnprint(os, "{}", id(lam));
-        if (slotted()) {
-            tab.lnprint(os, "(scope");
-            ++tab;
-        }
-        // We turn slot-printing off to emit the lam id without a slot prefix '$'
-        toggle_slots();
         tab.lnprint(os, "({} {} {}", lam_kind, ext, id(lam));
-        toggle_slots();
     } else {
-        toggle_slots();
         print(os, "({} {} {}", lam_kind, ext, id(lam));
-        toggle_slots();
     }
 
     print(os, "{}", emit_var(bb, lam->var(), lam->type()->dom()));
 
-    // Continuations have codomain .bot but lambdas can have arbitrary codomains
     if (!lam->isa_cn(lam)) {
         ++tab;
-        tab.lnprint(os, "(sigma");
-        ++tab;
-        for (auto codom : lam->codoms())
-            tab.lnprint(os, "{}", emit_type(bb, codom));
-        print(os, ")");
-        --tab;
+        tab.lnprint(os, "{}", emit_type(bb, lam->type()->codom()));
         --tab;
     }
 
@@ -545,6 +547,10 @@ std::string Emitter::emit_type(BB& bb, const Def* type) {
             print(os, "(meet {})", emit_cons_type(bb, meet->ops()));
         else
             print(os, "(meet { })", Elem(meet->ops(), [&](auto op) { print(os, "{}", emit_type(bb, op)); }));
+    } else if (auto bot = type->isa<Bot>()) {
+        print(os, "(bot {})", emit_type(bb, bot->type()));
+    } else if (auto top = type->isa<Top>()) {
+        print(os, "(top {})", emit_type(bb, top->type()));
     } else {
         error("unsupported type '{}'", type);
         fe::unreachable();

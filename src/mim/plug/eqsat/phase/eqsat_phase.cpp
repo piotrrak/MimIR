@@ -19,7 +19,7 @@ void EqsatPhase::start() {
                 if (auto body_app = body->isa<App>()) {
                     if (Axm::isa<eqsat::slotted>(body_app->arg()))
                         slotted = true;
-                    else if (Axm::isa<eqsat::AstDepth>(body_app->arg()))
+                    else if (Axm::isa<eqsat::egg>(body_app->arg()))
                         slotted = false;
                 }
             }
