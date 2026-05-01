@@ -79,7 +79,7 @@ private:
     // At this point, the bodies of the lambdas created
     // in the init phase will be set.
     void convert(rust::Vec<RecExprFFI> rec_exprs);
-    const Def* convert(uint32_t id, bool recurse = false, bool update_loc = true);
+    const Def* convert(uint32_t id, bool recurse = false);
     const Def* convert_root(uint32_t id, NodeFFI node);
     const Def* convert_let(uint32_t id, NodeFFI node);
     const Def* convert_con(uint32_t id, NodeFFI node);
@@ -282,12 +282,17 @@ private:
         curr_scope_               = get_scope(curr_loc_);
     }
 
-    void enter_scope(NodeFFI node) {
+    void enter_scope(NodeFFI node, bool ignore_last_visit = false) {
         if (node.kind == MimKind::Scope) {
             auto parent_loc = curr_loc_;
 
             curr_loc_.depth++;
             curr_loc_.offset = depth_visits_[curr_loc_.depth];
+
+            // We act like we didn't already visit at that depth before,
+            // which we need to be able to revisit a scope we just exited
+            // in the convert() bottom-up traverse.
+            if (ignore_last_visit) curr_loc_.offset--;
 
             set_scope();
             curr_scope_->parent_loc = parent_loc;

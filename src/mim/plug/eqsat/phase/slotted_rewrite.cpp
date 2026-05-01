@@ -120,7 +120,7 @@ const Def* SlottedRewrite::init_axm(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     auto name = get_symbol(node.children[0]);
     if (DEBUG) std::cout << "\n";
-    auto type = convert(node.children[1], true, false);
+    auto type = convert(node.children[1], true);
 
     auto new_axm = new_world().axm(type);
     new_axm->set(name);
@@ -164,7 +164,7 @@ const Def* SlottedRewrite::init_let(uint32_t id, NodeFFI node) {
         def->set(name);
         register_var(name, def);
     } else {
-        def = convert(name_scope.children[0], true, false);
+        def = convert(name_scope.children[0], true);
         def->set(name);
         register_var(name, def);
     }
@@ -177,7 +177,7 @@ const Def* SlottedRewrite::init_let(uint32_t id, NodeFFI node) {
 // (con <domain-type> $var-name (scope <filter> <body>))
 const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
-    auto domain_type = convert(node.children[0], true, false);
+    auto domain_type = convert(node.children[0], true);
     auto new_con     = new_world().mut_con(domain_type);
 
     auto var_name = get_slot(id);
@@ -215,15 +215,10 @@ void SlottedRewrite::convert(rust::Vec<RecExprFFI> rec_exprs) {
     }
 }
 
-const Def* SlottedRewrite::convert(uint32_t id, bool recurse, bool update_loc) {
+const Def* SlottedRewrite::convert(uint32_t id, bool recurse) {
     auto node = get_node_unsafe(id);
 
-    // Since convert() is intermittently called during init() to convert
-    // subexpressions, like the domain type of a lambda, we need to be able
-    // to suppress location modifications via enter_/exit_scope() for these calls.
-    // So any calls to convert() from init() set update_loc=false to ensure
-    // that curr_loc_ is not modified by these calls.
-    if (update_loc) enter_scope(node);
+    enter_scope(node);
 
     if (recurse)
         for (uint32_t child : node.children)
@@ -264,7 +259,8 @@ const Def* SlottedRewrite::convert(uint32_t id, bool recurse, bool update_loc) {
         default: break;
     }
 
-    if (update_loc) exit_scope(node);
+    if (DEBUG_SCOPES && node.kind == MimKind::Scope) std::cout << "\n";
+    exit_scope(node);
 
     if (DEBUG) std::cout << res << "\n";
     return cache_set(id, res);
@@ -279,7 +275,8 @@ const Def* SlottedRewrite::convert_root(uint32_t id, NodeFFI node) {
         auto con       = def->as_mut<Lam>();
         auto con_node  = get_node(MimKind::Con, node.children[2]);
         auto var_scope = get_node(MimKind::Scope, con_node.children[1]);
-        enter_scope(var_scope);
+        if (DEBUG_SCOPES) std::cout << "\n";
+        enter_scope(var_scope, true);
         auto filter = get_def(var_scope.children[0]);
         auto body   = get_def(var_scope.children[1]);
         if (filter && body) {
@@ -298,7 +295,8 @@ const Def* SlottedRewrite::convert_root(uint32_t id, NodeFFI node) {
 // (let $name (scope <definition> <expression>))
 const Def* SlottedRewrite::convert_let(uint32_t id, NodeFFI node) {
     auto name_scope = get_node(MimKind::Scope, node.children[0]);
-    enter_scope(name_scope);
+    if (DEBUG_SCOPES) std::cout << "\n";
+    enter_scope(name_scope, true);
     auto def  = get_def(id);
     auto expr = get_def(name_scope.children[1]);
 
@@ -306,7 +304,7 @@ const Def* SlottedRewrite::convert_let(uint32_t id, NodeFFI node) {
         auto con       = def->as_mut<Lam>();
         auto con_node  = get_node(MimKind::Con, name_scope.children[0]);
         auto var_scope = get_node(MimKind::Scope, con_node.children[1]);
-        enter_scope(var_scope);
+        enter_scope(var_scope, true);
         auto filter = get_def(var_scope.children[0]);
         auto body   = get_def(var_scope.children[1]);
         if (filter && body) {
