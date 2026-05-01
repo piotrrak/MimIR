@@ -81,6 +81,7 @@ void SlottedRewrite::init(rust::Vec<RecExprFFI> rewrites, InitStage stage) {
         scopes_       = {};
         depth_visits_ = {};
         curr_loc_     = {0, 0};
+        curr_scope_   = {curr_loc_, "", nullptr};
         res_          = rewrite.nodes;
         auto root_id  = res_.size() - 1;
         init(root_id, stage, true);
@@ -193,11 +194,12 @@ const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node, bool root) {
     if (root) {
         register_var(var_name, var);
     } else {
-        curr_loc_.depth++;
-        curr_loc_.offset = depth_visits_[curr_loc_.depth];
+        auto var_scope = get_node(MimKind::Scope, node.children[1]);
+        enter_scope(var_scope, DEBUG);
         register_var(var_name, var);
-        curr_loc_.depth--;
-        curr_loc_.offset = depth_visits_[curr_loc_.depth];
+        // We set ignore_visit=true to ensure that this visit won't be
+        // counted twice in depth_visits_ (init() will already count it once)
+        exit_scope(var_scope, DEBUG, true);
     }
 
     return new_con;

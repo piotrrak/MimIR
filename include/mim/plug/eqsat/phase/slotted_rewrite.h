@@ -126,14 +126,16 @@ private:
         return def;
     }
 
-    void register_var(std::string name, const Def* converted) {
+    void register_var(std::string name, const Def* def) {
         if (vars_.contains(name)) {
             std::cerr << "register_var: can't define the same var: " << name << " twice\n"
                       << "existing def: " << vars_[name] << "\n";
             assert(false);
         }
         std::cout << "registering " << name << " in scope: (" << curr_loc_.depth << ", " << curr_loc_.offset << ")\n";
-        vars_[name] = converted;
+        curr_scope_.var_name = name;
+        curr_scope_.def      = def;
+        vars_[name]          = def;
     }
     void register_axm(std::string name, const Axm* converted) {
         if (axms_.contains(name)) {
@@ -193,6 +195,12 @@ private:
         size_t offset;
 
         bool operator==(const Loc& other) const noexcept { return depth == other.depth && offset == other.offset; }
+
+        std::string to_str() const {
+            std::ostringstream os;
+            os << "Loc{ depth=" << depth << ", offset=" << offset << " }";
+            return os.str();
+        }
     };
 
     struct LocHash {
@@ -203,30 +211,67 @@ private:
 
     Loc curr_loc_;
 
-    // Tells us exactly how often we have visited each depth
+    // Keeps track of how often we have visited each scope-depth
     // so we can keep track of the current locations' offset at each depth.
     // maps: Depth -> #Visits
     std::unordered_map<size_t, size_t> depth_visits_;
 
     struct Scope {
-        Scope* parent;
+        Loc parent;
         std::string var_name;
         const Def* def;
+
+        std::string to_str() const {
+            std::ostringstream os;
+            os << "Scope{ parent=";
+            os << parent.to_str();
+            os << ", var=\"" << var_name << "\"";
+
+            os << ", def=";
+            if (def)
+                os << def;
+            else
+                os << "null";
+            os << " }";
+
+            return os.str();
+        }
     };
+
+    void set_scope() {
+        auto scope  = scopes_[curr_loc_];
+        curr_scope_ = scope;
+    }
+
+    void set_parent() {
+        auto parent_loc    = curr_loc_;
+        curr_scope_.parent = parent_loc;
+    }
 
     void enter_scope(NodeFFI node, bool dbg) {
         if (node.kind == MimKind::Scope) {
+            set_parent();
+
             curr_loc_.depth++;
             curr_loc_.offset = depth_visits_[curr_loc_.depth];
             if (dbg) std::cout << "Entering scope - Loc(" << curr_loc_.depth << ", " << curr_loc_.offset << ")\n";
+
+            set_scope();
+            if (dbg) std::cout << "Current scope: " << curr_scope_.to_str() << "\n";
         }
     }
 
-    void exit_scope(NodeFFI node, bool dbg) {
+    void exit_scope(NodeFFI node, bool dbg = false, bool ignore_visit = false) {
         if (node.kind == MimKind::Scope) {
             curr_loc_.depth--;
-            curr_loc_.offset = ++depth_visits_[curr_loc_.depth];
+
+            if (!ignore_visit) depth_visits_[curr_loc_.depth]++;
+
+            curr_loc_.offset = depth_visits_[curr_loc_.depth];
             if (dbg) std::cout << "Exiting scope - Loc(" << curr_loc_.depth << ", " << curr_loc_.offset << ")\n";
+
+            set_scope();
+            if (dbg) std::cout << "Current scope: " << curr_scope_.to_str() << "\n";
         }
     }
 
