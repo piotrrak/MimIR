@@ -85,7 +85,7 @@ void SlottedRewrite::init(rust::Vec<RecExprFFI> rec_exprs, InitStage stage) {
         set_scopes(rec_expr_idx);
 
         auto root_id = nodes().size() - 1;
-        init(root_id, stage, true);
+        init(root_id, stage);
 
         rec_expr_idx++;
     }
@@ -97,7 +97,7 @@ void SlottedRewrite::init(rust::Vec<RecExprFFI> rec_exprs, InitStage stage) {
 // The bodies of lambdas can only be created and then set inside of convert(...)
 // after every Def from the init stage has been created, because they
 // can depend on any declaration, lambda, or let-binding.
-const Def* SlottedRewrite::init(uint32_t id, InitStage stage, bool recurse) {
+const Def* SlottedRewrite::init(uint32_t id, InitStage stage) {
     auto node = get_node_unsafe(id);
 
     enter_scope(node, DEBUG);
@@ -111,9 +111,8 @@ const Def* SlottedRewrite::init(uint32_t id, InitStage stage, bool recurse) {
     }
     cache_set(id, res);
 
-    if (recurse)
-        for (uint32_t child : node.children)
-            init(child, stage, recurse);
+    for (uint32_t child : node.children)
+        init(child, stage);
 
     exit_scope(node, DEBUG);
 

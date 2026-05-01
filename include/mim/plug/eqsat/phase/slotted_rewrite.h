@@ -65,7 +65,7 @@ private:
         Bindings,
     };
     void init(rust::Vec<RecExprFFI> rec_exprs, InitStage stage);
-    const Def* init(uint32_t id, InitStage stage, bool recurse = false);
+    const Def* init(uint32_t id, InitStage stage);
     const Def* init_axm(uint32_t id, NodeFFI node);
     const Def* init_root(uint32_t id, NodeFFI node);
     const Def* init_let(uint32_t id, NodeFFI node);
