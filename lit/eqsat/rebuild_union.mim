@@ -1,5 +1,5 @@
-// RUN: sed 's/__IMPL__/egg/' %s | %mim %s -o -
-// RUN: sed 's/__IMPL__/slotted/' %s | %mim %s -o -
+// RUN: sed 's/__IMPL__/egg/' %s > %t && %mim %t -o -
+// RUN: sed 's/__IMPL__/slotted/' %s > %t && %mim %t -o -
 
 plugin eqsat;
 
