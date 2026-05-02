@@ -18,9 +18,11 @@ void EggRewrite::start() {
     std::ostringstream sexpr;
     driver().backend("sexpr")(old_world(), sexpr);
 
-    if (DEBUG) std::cout << pretty(sexpr.str(), 80).c_str() << "\n";
+    if (DEBUG) std::cout << pretty_egg(sexpr.str(), 80).c_str() << "\n";
 
-    auto rewrites = equality_saturate(sexpr.str(), rulesets, cost_fn);
+    auto rewrites = eqsat_egg(sexpr.str(), rulesets, cost_fn);
+
+    if (DEBUG) std::cout << pretty_ffi(rewrites, 80).c_str() << "\n";
 
     init(rewrites, InitStage::Declarations);
     init(rewrites, InitStage::Lambdas);

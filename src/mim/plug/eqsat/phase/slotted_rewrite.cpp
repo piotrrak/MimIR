@@ -20,7 +20,7 @@ void SlottedRewrite::start() {
 
     if (DEBUG) std::cout << sexpr.str() << "\n";
 
-    auto rec_exprs = equality_saturate_slotted(sexpr.str(), rulesets, cost_fn);
+    auto rec_exprs = eqsat_slotted(sexpr.str(), rulesets, cost_fn);
 
     if (DEBUG) std::cout << pretty_ffi(rec_exprs, 80).c_str() << "\n";
 
