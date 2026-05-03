@@ -41,16 +41,16 @@ def patch_workflow(workflow_file: Path, output_file: Path, plugin: str) -> None:
     """Patch a workflow file for the plugin."""
     content = workflow_file.read_text()
 
-    # Replace the "Clone recursively" checkout step to clone mimir-lang/mimir
+    # Replace the "Clone recursively" checkout step to clone mimir/mimir
     content = re.sub(
         r'(      - name: Clone (?:mimir )?recursively\n        uses: actions/checkout@v4)\n        with:\n          submodules: recursive',
-        r'\1\n        with:\n          repository: mimir-lang/mimir\n          path: mimir\n          submodules: recursive',
+        r'\1\n        with:\n          repository: mimir/mimir\n          path: mimir\n          submodules: recursive',
         content
     )
 
     # Add the plugin clone step after the mimir clone
     content = re.sub(
-        r'(      - name: Clone (?:mimir )?recursively\n        uses: actions/checkout@v4\n        with:\n          repository: mimir-lang/mimir\n          path: mimir\n          submodules: recursive)',
+        r'(      - name: Clone (?:mimir )?recursively\n        uses: actions/checkout@v4\n        with:\n          repository: mimir/mimir\n          path: mimir\n          submodules: recursive)',
         lambda m: m.group(1) + f'\n\n      - name: Clone {plugin} plugin\n        uses: actions/checkout@v4\n        with:\n          path: mimir/extra/{plugin}',
         content
     )
