@@ -1,7 +1,18 @@
+#titlearea {
+    position: relative;
+    z-index: 103;
+}
+
+#projectalign {
+    position: relative;
+    z-index: 103;
+}
+
 #projectnumber.version-switcher {
     position: relative;
     display: inline-block;
     margin-left: var(--spacing-small);
+    z-index: 103;
 }
 
 #projectnumber.version-switcher .version-switcher__button {
