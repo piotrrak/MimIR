@@ -12,12 +12,12 @@ std::ostream& print(std::ostream& os, const char* s) {
                 while (*s && *s != '}')
                     s++;
                 assert(*s != '}' && "invalid format string for 'streamf': missing argument(s)");
-                std::unreachable();
+                fe::unreachable();
                 break;
             case '}':
                 if (detail::match2nd(os, next, s, '}')) continue;
                 assert(false && "unmatched/unescaped closing brace '}' in format string");
-                std::unreachable();
+                fe::unreachable();
             default: os << *s++;
         }
     }

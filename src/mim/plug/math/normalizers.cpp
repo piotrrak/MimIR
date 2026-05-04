@@ -25,12 +25,12 @@ Res fold(u64 a) {
         else if constexpr (id == tri::asinh) return asinh(x);
         else if constexpr (id == tri::acosh) return acosh(x);
         else if constexpr (id == tri::atanh) return atanh(x);
-        else std::unreachable();
+        else fe::unreachable();
     } else if constexpr (std::is_same_v<Id, rt>) {
         if constexpr (false) {}
         else if constexpr (id == rt::sq) return std::sqrt(x);
         else if constexpr (id == rt::cb) return std::cbrt(x);
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else if constexpr (std::is_same_v<Id, exp>) {
         if constexpr (false) {}
         else if constexpr (id == exp::exp  ) return std::exp  (x);
@@ -39,26 +39,26 @@ Res fold(u64 a) {
         else if constexpr (id == exp::log  ) return std::log  (x);
         else if constexpr (id == exp::log2 ) return std::log2 (x);
         else if constexpr (id == exp::log10) return std::log10(x);
-        else std::unreachable();
+        else fe::unreachable();
     } else if constexpr (std::is_same_v<Id, er>) {
         if constexpr (false) {}
         else if constexpr (id == er::f ) return std::erf (x);
         else if constexpr (id == er::fc) return std::erfc(x);
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else if constexpr (std::is_same_v<Id, gamma>) {
         if constexpr (false) {}
         else if constexpr (id == gamma::t) return std::tgamma(x);
         else if constexpr (id == gamma::l) return std::lgamma(x);
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else if constexpr (std::is_same_v<Id, round>) {
         if constexpr (false) {}
         else if constexpr (id == round::f) return  std::floor (x);
         else if constexpr (id == round::c) return  std::ceil (x);
         else if constexpr (id == round::r) return  std::round (x);
         else if constexpr (id == round::t) return  std::trunc (x);
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else {
-        []<bool flag = false>() { static_assert(flag, "missing tag"); }();
+        static_assert(false, "missing tag");
     }
 }
 
@@ -66,11 +66,10 @@ template<class Id, nat_t w>
 Res fold(u64 a) {
     using T = w2f<w>;
     auto x = bitcast<T>(a);
-    if constexpr (std::is_same_v<Id, abs>) {
+    if constexpr (std::is_same_v<Id, abs>)
         return std::abs(x);
-    } else {
-        []<bool flag = false>() { static_assert(flag, "missing tag"); }();
-    }
+    else
+        static_assert(false, "missing tag");
 }
 
 template<class Id>
@@ -106,7 +105,7 @@ Res fold(u64 a, u64 b) {
         else if constexpr (id == arith::mul) return     x * y;
         else if constexpr (id == arith::div) return     x / y;
         else if constexpr (id == arith::rem) return rem(x,  y);
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else if constexpr (std::is_same_v<Id, math::extrema>) {
         if (x == T(-0.0) && y == T(+0.0)) return (id == extrema::fmin || id == extrema::ieee754min) ? x : y;
         if (x == T(+0.0) && y == T(-0.0)) return (id == extrema::fmin || id == extrema::ieee754min) ? y : x;
@@ -118,7 +117,7 @@ Res fold(u64 a, u64 b) {
             if (std::isnan(y)) return y;
             return id == extrema::ieee754min ? std::fmin(x, y) : std::fmax(x, y);
         } else {
-            []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+            static_assert(false, "missing sub tag");
         }
     } else if constexpr (std::is_same_v<Id, pow>) {
         return std::pow(a, b);
@@ -131,7 +130,7 @@ Res fold(u64 a, u64 b) {
         res |= ((id & cmp::e) != cmp::f) && x == y;
         return res;
     } else {
-        []<bool flag = false>() { static_assert(flag, "missing tag"); }();
+        static_assert(false, "missing tag");
     }
 }
 // clang-format on
@@ -285,7 +284,7 @@ const Def* normalize_arith(const Def* type, const Def* c, const Def* arg) {
                     case arith::sub: return a;  // a - 0 -> a
                     case arith::div: break;
                     case arith::rem: break;
-                    default: std::unreachable();
+                    default: fe::unreachable();
                     // add, mul are commutative, the literal has been normalized to the left
                 }
             }
@@ -423,7 +422,7 @@ const Def* normalize_conv(const Def* dst_t, const Def*, const Def* x) {
             M(32,  1) M(32,  8) M(32, 16) M(32, 32) M(32, 64)
             M(64,  1) M(64,  8) M(64, 16) M(64, 32) M(64, 64)
 
-            else std::unreachable();
+            else fe::unreachable();
             // clang-format on
             return world.lit(d_t, *res);
         }

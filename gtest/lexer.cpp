@@ -100,7 +100,7 @@ TEST_P(Real, sign) {
             case 0: break;
             case 1: s.insert(0, "+"sv); break;
             case 2: s.insert(0, "-"sv); break;
-            default: std::unreachable();
+            default: fe::unreachable();
         }
 
         std::istringstream is(s);

@@ -44,14 +44,14 @@ Res fold(u64 a, u64 b, [[maybe_unused]] bool nsw, [[maybe_unused]] bool nuw) {
             if (nsw && get_sign(u) != get_sign(res)) return {};
             return res;
         } else {
-            []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+             static_assert(false, "missing sub tag");
         }
     } else if constexpr (std::is_same_v<Id, shr>) {
         if (b >= w) return {};
         if constexpr (false) {}
         else if constexpr (id == shr::a) return s >> t;
         else if constexpr (id == shr::l) return u >> v;
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else if constexpr (std::is_same_v<Id, div>) {
         if (b == 0) return {};
         if constexpr (false) {}
@@ -59,7 +59,7 @@ Res fold(u64 a, u64 b, [[maybe_unused]] bool nsw, [[maybe_unused]] bool nuw) {
         else if constexpr (id == div::udiv) return u / v;
         else if constexpr (id == div::srem) return s % t;
         else if constexpr (id == div::urem) return u % v;
-        else []<bool flag = false>() { static_assert(flag, "missing sub tag"); }();
+        else static_assert(false, "missing sub tag");
     } else if constexpr (std::is_same_v<Id, icmp>) {
         bool res = false;
         auto pm  = !(u >> UT(w - 1)) &&  (v >> UT(w - 1));
@@ -77,7 +77,7 @@ Res fold(u64 a, u64 b, [[maybe_unused]] bool nsw, [[maybe_unused]] bool nuw) {
         else if(id == extrema::sM) return std::max(u, v);
         else if(id == extrema::SM) return std::max(s, t);
     } else {
-        []<bool flag = false>() { static_assert(flag, "missing tag"); }();
+        static_assert(false, "missing tag");
     }
 }
 // clang-format on
@@ -126,7 +126,7 @@ Res fold(u64 a, [[maybe_unused]] bool nsw, [[maybe_unused]] bool nuw) {
     if constexpr (std::is_same_v<Id, abs>)
         return std::abs(s);
     else
-        []<bool flag = false>() { static_assert(flag, "missing tag"); }();
+        static_assert(false, "missing tag");
 }
 
 template<class Id>
@@ -281,7 +281,7 @@ const Def* normalize_ncmp(const Def* type, const Def* callee, const Def* arg) {
                 case ncmp::le: return world.lit_bool(*la <= *lb);
                 case ncmp::g : return world.lit_bool(*la >  *lb);
                 case ncmp::ge: return world.lit_bool(*la >= *lb);
-                default: std::unreachable();
+                default: fe::unreachable();
             }
             // clang-format on
         }
@@ -339,7 +339,7 @@ const Def* normalize_bit1(const Def* type, const Def* c, const Def* a) {
         switch (id) {
             case bit1::f: return world.lit_idx(*ls, 0);
             case bit1::t: return world.lit_idx(*ls, *ls - 1_u64);
-            case bit1::id: std::unreachable();
+            case bit1::id: fe::unreachable();
             default: break;
         }
 
@@ -391,7 +391,7 @@ const Def* normalize_bit2(const Def* type, const Def* c, const Def* arg) {
             case bit2::nxor: return world.lit_idx_mod(*ls, ~(*la ^  *lb));
             case bit2:: iff: return world.lit_idx_mod(*ls, ~ *la |  *lb);
             case bit2::niff: return world.lit_idx    (*ls,   *la & ~*lb);
-            default: std::unreachable();
+            default: fe::unreachable();
         }
     }
 
@@ -515,7 +515,7 @@ const Def* normalize_wrap(const Def* type, const Def* c, const Def* arg) {
             switch (id) {
                 case wrap::sub: return a;    // a  - 0 -> a
                 case wrap::shl: return a;    // a >> 0 -> a
-                default: std::unreachable();
+                default: fe::unreachable();
                 // add, mul are commutative, the literal has been normalized to the left
             }
         }
@@ -656,7 +656,7 @@ const Def* normalize_trait(const Def*, const Def*, const Def* type) {
             case 16: return world.lit_nat(2);
             case 32: return world.lit_nat(4);
             case 64: return world.lit_nat(8);
-            default: std::unreachable();
+            default: fe::unreachable();
         }
     } else if (type->isa<Sigma>() || type->isa<Meet>()) {
         u64 offset = 0;

@@ -177,9 +177,9 @@ public:
     void apply(Passes&&);
     void apply(const App* app) final;
     void apply(Stage& stage) final { apply(std::move(static_cast<PassMan&>(stage).passes_)); }
-    void init(PassMan*) final { std::unreachable(); }
+    void init(PassMan*) final { fe::unreachable(); }
 
-    bool inspect() const final { std::unreachable(); }
+    bool inspect() const final { fe::unreachable(); }
 
     /// @name Getters
     ///@{

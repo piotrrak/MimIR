@@ -90,7 +90,7 @@ public:
             case Tag::Error: return o << rang::fg::red     << "error";
             case Tag::Warn:  return o << rang::fg::magenta << "warning";
             case Tag::Note:  return o << rang::fg::green   << "note";
-            default: std::unreachable();
+            default: fe::unreachable();
         }
         // clang-format on
     }
