@@ -84,12 +84,12 @@ const Def* fold(World& world, const Def* type, const Def* a) {
         switch (width) {
 #define CODE(i) \
     case i: res = fold<Id, i>(la->get()); break;
-            MIM_16_32_64(CODE)
+            MIM_F16_32_64(CODE)
 #undef CODE
-            default: fe::unreachable();
+            default: return nullptr;
         }
 
-        return world.lit(type, *res);
+        return res ? world.lit(type, *res) : nullptr;
     }
 
     return nullptr;
@@ -146,12 +146,12 @@ const Def* fold(World& world, const Def* type, const Def* a) {
         switch (width) {
 #define CODE(i) \
     case i: res = fold<Id, id, i>(*la); break;
-            MIM_16_32_64(CODE)
+            MIM_F16_32_64(CODE)
 #undef CODE
-            default: fe::unreachable();
+            default: return nullptr;
         }
 
-        return world.lit(type, *res);
+        return res ? world.lit(type, *res) : nullptr;
     }
 
     return nullptr;
@@ -169,12 +169,12 @@ const Def* fold(World& world, const Def* type, const Def*& a, const Def*& b) {
             switch (width) {
 #define CODE(i) \
     case i: res = fold<Id, id, i>(*la, *lb); break;
-                MIM_16_32_64(CODE)
+                MIM_F16_32_64(CODE)
 #undef CODE
-                default: fe::unreachable();
+                default: return nullptr;
             }
 
-            return world.lit(type, *res);
+            return res ? world.lit(type, *res) : nullptr;
         }
     }
 
@@ -250,8 +250,12 @@ const Def* normalize_arith(const Def* type, const Def* c, const Def* arg) {
     // clang-format off
     // TODO check mode properly
     if (w && lm && *lm == Mode::fast) {
+        auto zero = lit_f(world, *w, 0.0);
+        auto one  = lit_f(world, *w, 1.0);
+        auto two  = lit_f(world, *w, 2.0);
+
         if (auto la = a->isa<Lit>()) {
-            if (la == lit_f(world, *w, 0.0)) {
+            if (zero && la == zero) {
                 switch (id) {
                     case arith::add: return b;  // 0 + b -> b
                     case arith::sub: break;
@@ -261,7 +265,7 @@ const Def* normalize_arith(const Def* type, const Def* c, const Def* arg) {
                 }
             }
 
-            if (la == lit_f(world, *w, 1.0)) {
+            if (one && la == one) {
                 switch (id) {
                     case arith::add: break;
                     case arith::sub: break;
@@ -273,7 +277,7 @@ const Def* normalize_arith(const Def* type, const Def* c, const Def* arg) {
         }
 
         if (auto lb = b->isa<Lit>()) {
-            if (lb == lit_f(world, *w, 0.0)) {
+            if (zero && lb == zero) {
                 switch (id) {
                     case arith::sub: return a;  // a - 0 -> a
                     case arith::div: break;
@@ -286,10 +290,10 @@ const Def* normalize_arith(const Def* type, const Def* c, const Def* arg) {
 
         if (a == b) {
             switch (id) {
-                case arith::add: return world.call(arith::mul, mode, Defs{lit_f(world, *w, 2.0), a}); // a + a -> 2 * a
-                case arith::sub: return lit_f(world, *w, 0.0);                                        // a - a -> 0
+                case arith::add: if (two ) return world.call(arith::mul, mode, Defs{two , a}); break; // a + a -> 2 * a
+                case arith::sub: if (zero) return zero; break;                                          // a - a -> 0
                 case arith::mul: break;
-                case arith::div: return lit_f(world, *w, 1.0);                                        // a / a -> 1
+                case arith::div: if (one ) return one ; break;                                          // a / a -> 1
                 case arith::rem: break;
             }
         }

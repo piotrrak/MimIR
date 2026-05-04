@@ -116,10 +116,6 @@ install(
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 install(
-    FILES "${PROJECT_SOURCE_DIR}/submodules/half/include/half.hpp"
-    DESTINATION include
-)
-install(
     FILES
         cmake/Mim.cmake
         "${CMAKE_CURRENT_BINARY_DIR}/mim-config-version.cmake"
